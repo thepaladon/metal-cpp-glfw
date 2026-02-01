@@ -32,14 +32,25 @@ int main() {
     nsview->setOpaque(true);
 
     glfwSetKeyCallback(window, quit);
-    auto color = MTL::ClearColor::Make(0, 0, 0, 1);
+    MTL::ClearColor color = MTL::ClearColor::Make(1, 1, 1, 1);
 
+    std::chrono::high_resolution_clock::time_point lastTime = std::chrono::high_resolution_clock::now();
+
+    
     while (!glfwWindowShouldClose(window)) {
+
+        std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+        auto deltaTime = std::chrono::duration<float>(now - lastTime).count();
+        lastTime = now;
+
+        float FPS = 1 / deltaTime;
+
         glfwPollEvents();
 
         auto autoReleasePool = NS::AutoreleasePool::alloc()->init();
         
         color.red = color.red > 1.0 ? 0.0 : color.red + 0.01;
+        printf("DeltaTime: %f, FPS: %f\n", deltaTime, FPS);
 
         auto surface = layer->nextDrawable();
         auto pass = MTL::RenderPassDescriptor::renderPassDescriptor();

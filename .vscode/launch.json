@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch (lldb)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/metal_cpp_test",
+      "args": [],
+      "cwd": "${workspaceFolder}/build",
+      "stopAtEntry": false,
+      "externalConsole": true,
+      "MIMode": "lldb",
+      "preLaunchTask": "cmake: build"
+    }
+  ]
+}
