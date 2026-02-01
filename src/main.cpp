@@ -8,78 +8,198 @@
 #define MTL_PRIVATE_IMPLEMENTATION
 #include <Foundation/Foundation.hpp>
 #include <Metal/Metal.hpp>
+#include <Metal/MTLPixelFormat.hpp>
 #include <QuartzCore/QuartzCore.hpp>
 
-// metal-cpp-extensions (modified)
 #include <AppKit/AppKit.hpp>
 
+#include <chrono>
+#include <cstdio>
+
 static void quit(GLFWwindow *window, int key, int scancode, int action, int mods);
+
+static const char* kComputeMSL = R"METAL(
+#include <metal_stdlib>
+using namespace metal;
+
+kernel void fill_texture(texture2d<float, access::write> outTex [[texture(0)]],
+                         constant float& t [[buffer(0)]],
+                         uint2 gid [[thread_position_in_grid]])
+{
+    if (gid.x >= outTex.get_width() || gid.y >= outTex.get_height()) return;
+
+    float2 uv = float2(gid) / float2(outTex.get_width(), outTex.get_height());
+
+    float r = fract(uv.x + t);
+    float g = uv.y;
+    float b = 0.25f + 0.25f * sin(t * 6.2831853f);
+
+    outTex.write(float4(0, 1, 0, 1.0f), gid);
+}
+
+
+kernel void fill_texture2(texture2d<float, access::write> outTex [[texture(0)]],
+                         constant float& t [[buffer(0)]],
+                         uint2 gid [[thread_position_in_grid]])
+{
+    if (gid.x >= outTex.get_width() || gid.y >= outTex.get_height()) return;
+
+    float2 uv = float2(gid) / float2(outTex.get_width(), outTex.get_height());
+
+    float r = fract(uv.x + t);
+    float g = uv.y;
+    float b = 0.25f + 0.25f * sin(t * 6.2831853f);
+
+    outTex.write(float4(1, 0, 0, 1.0f), gid);
+}
+
+)METAL";
 
 int main() {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-    auto window = glfwCreateWindow(1280, 720, "Hello World", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "Hello World", nullptr, nullptr);
 
-    auto nswindow = reinterpret_cast<NS::Window*>(glfwGetCocoaWindow(window));
-    auto device = MTLCreateSystemDefaultDevice();
-    auto commandQueue = device->newCommandQueue();
-    auto layer = CA::MetalLayer::layer();
+    NS::Window* nswindow = reinterpret_cast<NS::Window*>(glfwGetCocoaWindow(window));
+    MTL::Device* device = MTLCreateSystemDefaultDevice();
+    MTL::CommandQueue* commandQueue = device->newCommandQueue();
+
+    CA::MetalLayer* layer = CA::MetalLayer::layer();
     layer->setDevice(device);
-    auto nsview = nswindow->contentView();
+    // ToDo: C/CPP extension errors here because it can't find the enum without the proper includes.
+    layer->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm);
+
+    // Required for compute-write into the drawable texture.
+    layer->setFramebufferOnly(false);
+
+    NS::View* nsview = nswindow->contentView();
     nsview->setLayer(layer);
     nsview->setWantsLayer(true);
     nsview->setOpaque(true);
 
+    // Build compute pipeline once (expensive-ish, do it at init).
+    MTL::Library* library = nullptr;
+    MTL::Function* kernelFn[2] = { nullptr, nullptr };
+    MTL::ComputePipelineState* cps[2] = { nullptr, nullptr };
+    {
+        NS::AutoreleasePool* pool = NS::AutoreleasePool::alloc()->init();
+
+        NS::Error* err = nullptr;
+        NS::String* src = NS::String::string(kComputeMSL, NS::UTF8StringEncoding);
+        library = device->newLibrary(src, nullptr, &err);
+        if (!library) {
+            const char* msg = err ? err->localizedDescription()->utf8String() : "unknown";
+            std::printf("newLibrary failed: %s\n", msg);
+            return 1;
+        }
+
+        NS::String* fnName = NS::String::string("fill_texture", NS::UTF8StringEncoding);
+        kernelFn[0] = library->newFunction(fnName);
+        if (!kernelFn[0]) {
+            std::printf("newFunction failed\n");
+            return 1;
+        }
+
+        fnName = NS::String::string("fill_texture2", NS::UTF8StringEncoding);
+        kernelFn[1] = library->newFunction(fnName);
+        if (!kernelFn[1]) {
+            std::printf("newFunction2 failed\n");
+            return 1;
+        }
+        
+        cps[0] = device->newComputePipelineState(kernelFn[0], &err);
+        if (!cps[0]) {
+            const char* msg = err ? err->localizedDescription()->utf8String() : "unknown";
+            std::printf("newComputePipelineState failed: %s\n", msg);
+            return 1;
+        }
+
+        cps[1] = device->newComputePipelineState(kernelFn[1], &err);
+        if (!cps[1]) {
+            const char* msg = err ? err->localizedDescription()->utf8String() : "unknown";
+            std::printf("newComputePipelineState2 failed: %s\n", msg);
+            return 1;
+        }
+
+        pool->release();
+    }
+
     glfwSetKeyCallback(window, quit);
-    MTL::ClearColor color = MTL::ClearColor::Make(1, 1, 1, 1);
 
-    std::chrono::high_resolution_clock::time_point lastTime = std::chrono::high_resolution_clock::now();
+    using Clock = std::chrono::high_resolution_clock;
+    Clock::time_point lastTime = Clock::now();
+    float t = 0.0f;
 
-    
+
+    uint32_t frame = 0;
     while (!glfwWindowShouldClose(window)) {
-
-        std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
-        auto deltaTime = std::chrono::duration<float>(now - lastTime).count();
+        Clock::time_point now = Clock::now();
+        float deltaTime = std::chrono::duration<float>(now - lastTime).count();
         lastTime = now;
+        t += deltaTime;
 
-        float FPS = 1 / deltaTime;
+        printf("Frame Time: %.3f ms (%.1f FPS)\n", deltaTime * 1000.0f, 1.0f / deltaTime);
 
         glfwPollEvents();
 
-        auto autoReleasePool = NS::AutoreleasePool::alloc()->init();
+        NS::AutoreleasePool* pool = NS::AutoreleasePool::alloc()->init();
+
+        CA::MetalDrawable* drawable = layer->nextDrawable();
+        if (!drawable) {
+            pool->release();
+            continue;
+        }
+
+        MTL::Texture* outTex = drawable->texture();
         
-        color.red = color.red > 1.0 ? 0.0 : color.red + 0.01;
-        printf("DeltaTime: %f, FPS: %f\n", deltaTime, FPS);
+        MTL::CommandBuffer* cb = commandQueue->commandBuffer();
+        MTL::ComputeCommandEncoder* ce = cb->computeCommandEncoder();
 
-        auto surface = layer->nextDrawable();
-        auto pass = MTL::RenderPassDescriptor::renderPassDescriptor();
-        auto passColorAttachment0 = pass->colorAttachments()->object(0);
-        passColorAttachment0->setClearColor(color);
-        passColorAttachment0->setLoadAction(MTL::LoadActionClear);
-        passColorAttachment0->setStoreAction(MTL::StoreActionStore);
-        passColorAttachment0->setTexture(surface->texture());
+        // Alternate between the two compute kernels.
+        uint32_t kernelIndex = frame % 2;
+        frame++;
+        ce->setComputePipelineState(cps[kernelIndex]);
+        ce->setTexture(outTex, 0);
+        ce->setBytes(&t, sizeof(t), 0);
 
-        auto commandBuffer = commandQueue->commandBuffer();
-        auto encoder = commandBuffer->renderCommandEncoder(pass);
-        encoder->endEncoding();
-        commandBuffer->presentDrawable(surface);
-        commandBuffer->commit();
+        // Grid = full texture
+        MTL::Size grid = MTL::Size::Make(outTex->width(), outTex->height(), 1);
 
-        autoReleasePool->release();
+        // Threadgroup sizing guidance: align to threadExecutionWidth.
+        NS::UInteger tgW = cps[kernelIndex]->threadExecutionWidth();
+        NS::UInteger tgH = cps[kernelIndex]->maxTotalThreadsPerThreadgroup() / tgW;
+        if (tgH == 0) tgH = 1;
+        if (tgH > 16) tgH = 16;
+
+        MTL::Size tgs = MTL::Size::Make(tgW, tgH, 1);
+        ce->dispatchThreads(grid, tgs);
+
+        ce->endEncoding();
+        cb->presentDrawableAfterMinimumDuration(drawable, 0.032);
+        cb->commit();
+
+        pool->release();
     }
+
+    for (int i = 0; i < 2; i++) {
+        cps[i]->release();
+        kernelFn[i]->release();
+    }
+
+    library->release();
 
     commandQueue->release();
     device->release();
-    
+
     glfwDestroyWindow(window);
     glfwTerminate();
-
     return 0;
 }
 
 static void quit(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
+    (void)scancode; (void)mods;
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }

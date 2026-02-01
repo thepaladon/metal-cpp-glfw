@@ -1,0 +1,20 @@
+// This didn't work chat :(
+// {
+//     "configurations": [
+//         {
+//             "name": "Mac",
+//             "includePath": [
+//                 "${workspaceFolder}/**",
+//                 "${workspaceFolder}/build/_deps/glfw-src",
+//                 "${workspaceFolder}/build/_deps/metal-cpp-src"
+//             ],
+//             "defines": [],
+//             "compilerPath": "/usr/bin/clang",
+//             "cStandard": "c17",
+//             "cppStandard": "c++14",
+//             "intelliSenseMode": "macos-clang-arm64",
+//             "configurationProvider": "ms-vscode.cmake-tools"
+//         }
+//     ],
+//     "version": 4
+// }
