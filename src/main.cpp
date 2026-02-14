@@ -236,7 +236,7 @@ int main()
         ce->setTexture(outTex, 0);
 
         static float t = 0.0f;
-        static float refreshRate = 1.0f / 60.0f;
+        static float refreshRate = 1.0f / 144.0f;
 
         ImGui::Begin("Control Panel");
         ImGui::Text("Frame Time: %.3f ms (%.1f FPS)", deltaTime * 1000.0f, 1.0f / deltaTime);
@@ -245,6 +245,10 @@ int main()
         ImGui::SliderFloat("Refresh Rate (FPS)", &refreshRate, 1.0f / 240.0f, 1.0f);
 
         ImGui::Text("Using Kernel: %s", kernelIndex == 0 ? "fill_texture" : "fill_texture2");
+
+        ImGui::Text("This is a box to test keyboard input");
+        char inputBuf[256] = "Type here for keyboard input test";
+        ImGui::InputText("Type here", inputBuf, 256); // This is just to capture keyboard input for testing
         ImGui::End();
 
         ce->setBytes(&t, sizeof(t), 0);
