@@ -9,7 +9,7 @@
       "args": [],
       "cwd": "${workspaceFolder}/build",
       "stopAtEntry": false,
-      "externalConsole": true,
+      "externalConsole": false,
       "MIMode": "lldb",
       "preLaunchTask": "cmake: build"
     }

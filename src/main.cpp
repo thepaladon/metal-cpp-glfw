@@ -95,8 +95,8 @@ int main()
     ImGuiContext *ctx = ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
 
     // Setup style
     ImGui::StyleColorsDark();
@@ -175,6 +175,12 @@ int main()
         t += deltaTime;
 
         printf("Frame Time: %.3f ms (%.1f FPS)\n", deltaTime * 1000.0f, 1.0f / deltaTime);
+
+        // test this wth printf
+        if(io.KeysData[ImGuiKey_NamedKey_BEGIN - ImGuiKey_UpArrow].Down)
+        {
+            printf("Up Arrow is down\n");
+        }
 
         glfwPollEvents();
         //
@@ -288,6 +294,11 @@ static void quit(GLFWwindow *window, int key, int scancode, int action, int mods
     (void)scancode;
     (void)mods;
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+    //close on Cmnd + W as well, like a normal Mac app
+    if (key == GLFW_KEY_W && action == GLFW_PRESS && (mods & GLFW_MOD_SUPER))
     {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
