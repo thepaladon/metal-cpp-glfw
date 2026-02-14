@@ -21,7 +21,13 @@
 #include <chrono>
 #include <cstdio>
 
-static void quit(GLFWwindow *window, int key, int scancode, int action, int mods);
+static void on_window_focus(GLFWwindow *window, int focused);
+static void on_cursor_enter(GLFWwindow *window, int entered);
+static void on_cursor_pos(GLFWwindow *window, double x, double y);
+static void on_mouse_button(GLFWwindow *window, int button, int action, int mods);
+static void on_scroll(GLFWwindow *window, double xoffset, double yoffset);
+static void on_key(GLFWwindow *window, int key, int scancode, int action, int mods);
+static void on_char(GLFWwindow *window, unsigned int c);
 
 static const char *kComputeMSL = R"METAL(
 #include <metal_stdlib>
@@ -72,6 +78,7 @@ int main()
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     GLFWwindow *window = glfwCreateWindow(1280, 720, "Hello World", nullptr, nullptr);
+    glfwFocusWindow(window);
 
     NS::Window *nswindow = reinterpret_cast<NS::Window *>(glfwGetCocoaWindow(window));
     MTL::Device *device = MTLCreateSystemDefaultDevice();
@@ -101,8 +108,15 @@ int main()
     // Setup style
     ImGui::StyleColorsDark();
 
-    assert(ImGui_ImplGlfw_InitForOther(window, true));
+    assert(ImGui_ImplGlfw_InitForOther(window, false));
     assert(ImGui_ImplMetal_Init(device));
+    glfwSetWindowFocusCallback(window, on_window_focus);
+    glfwSetCursorEnterCallback(window, on_cursor_enter);
+    glfwSetCursorPosCallback(window, on_cursor_pos);
+    glfwSetMouseButtonCallback(window, on_mouse_button);
+    glfwSetScrollCallback(window, on_scroll);
+    glfwSetKeyCallback(window, on_key);
+    glfwSetCharCallback(window, on_char);
 
     // Build compute pipeline once (expensive-ish, do it at init).
     MTL::Library *library = nullptr;
@@ -156,8 +170,6 @@ int main()
         pool->release();
     }
 
-    glfwSetKeyCallback(window, quit);
-
     using Clock = std::chrono::high_resolution_clock;
     Clock::time_point lastTime = Clock::now();
     float t = 0.0f;
@@ -177,7 +189,7 @@ int main()
         printf("Frame Time: %.3f ms (%.1f FPS)\n", deltaTime * 1000.0f, 1.0f / deltaTime);
 
         // test this wth printf
-        if(io.KeysData[ImGuiKey_NamedKey_BEGIN - ImGuiKey_UpArrow].Down)
+        if (ImGui::IsKeyDown(ImGuiKey_UpArrow))
         {
             printf("Up Arrow is down\n");
         }
@@ -289,17 +301,46 @@ int main()
     return 0;
 }
 
-static void quit(GLFWwindow *window, int key, int scancode, int action, int mods)
+static void on_window_focus(GLFWwindow *window, int focused)
 {
-    (void)scancode;
-    (void)mods;
+    ImGui_ImplGlfw_WindowFocusCallback(window, focused);
+}
+
+static void on_cursor_enter(GLFWwindow *window, int entered)
+{
+    ImGui_ImplGlfw_CursorEnterCallback(window, entered);
+}
+
+static void on_cursor_pos(GLFWwindow *window, double x, double y)
+{
+    ImGui_ImplGlfw_CursorPosCallback(window, x, y);
+}
+
+static void on_mouse_button(GLFWwindow *window, int button, int action, int mods)
+{
+    ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+}
+
+static void on_scroll(GLFWwindow *window, double xoffset, double yoffset)
+{
+    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+}
+
+static void on_key(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
-    //close on Cmnd + W as well, like a normal Mac app
+    // Close on Cmd+W as well, like a normal macOS app.
     if (key == GLFW_KEY_W && action == GLFW_PRESS && (mods & GLFW_MOD_SUPER))
     {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
+}
+
+static void on_char(GLFWwindow *window, unsigned int c)
+{
+    ImGui_ImplGlfw_CharCallback(window, c);
 }
