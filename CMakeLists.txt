@@ -100,3 +100,6 @@ target_link_libraries(metal_cpp_test PRIVATE
     gpu_api
     dear_imgui
 )
+
+# Ensure Visual Studio starts the actual app target, not ALL_BUILD.
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT metal_cpp_test)
