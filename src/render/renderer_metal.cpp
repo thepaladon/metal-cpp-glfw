@@ -101,9 +101,19 @@ class RendererMetal final : public Renderer
         ImGuiIO &io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
         ImGui::StyleColorsDark();
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            ImGuiStyle &style = ImGui::GetStyle();
+            style.WindowRounding = 0.0f;
+            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+        }
+        baseStyle_ = ImGui::GetStyle();
+        applyUiScale();
 
-        assert(ImGui_ImplGlfw_InitForOther(window_, false));
+        assert(ImGui_ImplGlfw_InitForOther(window_, true));
         assert(ImGui_ImplMetal_Init(device_));
 
         imguiRPD_ = MTL::RenderPassDescriptor::renderPassDescriptor();
@@ -148,6 +158,7 @@ class RendererMetal final : public Renderer
         ImGui_ImplMetal_NewFrame(imguiRPD_);
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
         if (showDemoWindow_)
         {
@@ -166,6 +177,10 @@ class RendererMetal final : public Renderer
         ImGui::Text("Frame Time: %.3f ms (%.1f FPS)", deltaTime * 1000.0f, 1.0f / deltaTime);
         ImGui::SliderFloat("Time", &time_, 0.0f, 10.0f);
         ImGui::SliderFloat("Refresh Rate (FPS)", &refreshRate_, 1.0f / 240.0f, 1.0f);
+        if (ImGui::SliderFloat("UI Scale", &uiScale_, 0.5f, 3.0f, "%.2fx"))
+        {
+            applyUiScale();
+        }
         ImGui::Text("Using Kernel: %s", kernelIndex == 0 ? "fill_texture" : "fill_texture2");
         ImGui::InputText("Type here", inputBuf_, sizeof(inputBuf_));
         ImGui::End();
@@ -192,6 +207,13 @@ class RendererMetal final : public Renderer
         ImGui::Render();
         ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData(), cb, imguiEncoder);
         imguiEncoder->endEncoding();
+
+        ImGuiIO &io = ImGui::GetIO();
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+        }
 
         cb->presentDrawableAfterMinimumDuration(drawable, refreshRate_);
         cb->commit();
@@ -244,6 +266,14 @@ class RendererMetal final : public Renderer
     }
 
   private:
+    void applyUiScale()
+    {
+        ImGuiStyle scaledStyle = baseStyle_;
+        scaledStyle.ScaleAllSizes(uiScale_);
+        ImGui::GetStyle() = scaledStyle;
+        ImGui::GetIO().FontGlobalScale = uiScale_;
+    }
+
     bool buildComputePipeline()
     {
         NS::AutoreleasePool *pool = NS::AutoreleasePool::alloc()->init();
@@ -312,6 +342,8 @@ class RendererMetal final : public Renderer
     bool showDemoWindow_ = true;
     float time_ = 0.0f;
     float refreshRate_ = 1.0f / 144.0f;
+    float uiScale_ = 1.0f;
+    ImGuiStyle baseStyle_ = {};
     char inputBuf_[256] = "Type here for keyboard input test";
     uint32_t frame_ = 0;
 
