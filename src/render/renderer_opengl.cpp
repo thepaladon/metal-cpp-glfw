@@ -31,9 +31,20 @@ class RendererOpenGL final : public Renderer
         ImGuiIO &io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
         ImGui::StyleColorsDark();
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            ImGuiStyle &style = ImGui::GetStyle();
+            style.WindowRounding = 0.0f;
+            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+        }
+        ImGui::GetStyle().Colors[ImGuiCol_DockingEmptyBg].w = 0.0f;
+        baseStyle_ = ImGui::GetStyle();
+        applyUiScale();
 
-        assert(ImGui_ImplGlfw_InitForOpenGL(window_, false));
+        assert(ImGui_ImplGlfw_InitForOpenGL(window_, true));
         assert(ImGui_ImplOpenGL3_Init("#version 330"));
 
         queue_ = gpuCreateQueue();
@@ -48,6 +59,8 @@ class RendererOpenGL final : public Renderer
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        ImGuiDockNodeFlags dockFlags = ImGuiDockNodeFlags_PassthruCentralNode;
+        ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), dockFlags);
 
         if (showDemoWindow_)
         {
@@ -58,9 +71,14 @@ class RendererOpenGL final : public Renderer
         ImGui::Text("Frame Time: %.3f ms (%.1f FPS)", deltaTime * 1000.0f, 1.0f / deltaTime);
         ImGui::Text("OpenGL renderer routed through gpu_api command submission.");
         ImGui::ColorEdit3("Clear Color", clearColor_);
+        if (ImGui::SliderFloat("UI Scale", &uiScale_, 0.5f, 3.0f, "%.2fx"))
+        {
+            applyUiScale();
+        }
         ImGui::End();
 
         ImGui::Render();
+        ImGuiIO &io = ImGui::GetIO();
 
         int width = 0;
         int height = 0;
@@ -70,6 +88,15 @@ class RendererOpenGL final : public Renderer
         glClear(GL_COLOR_BUFFER_BIT);
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            GLFWwindow *backupCurrentContext = glfwGetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            glfwMakeContextCurrent(backupCurrentContext);
+        }
+
         glfwSwapBuffers(window_);
 
         gpuSetPipeline(cb, pipeline_);
@@ -87,9 +114,19 @@ class RendererOpenGL final : public Renderer
     }
 
   private:
+    void applyUiScale()
+    {
+        ImGuiStyle scaledStyle = baseStyle_;
+        scaledStyle.ScaleAllSizes(uiScale_);
+        ImGui::GetStyle() = scaledStyle;
+        ImGui::GetIO().FontGlobalScale = uiScale_;
+    }
+
     GLFWwindow *window_ = nullptr;
     bool showDemoWindow_ = true;
     float clearColor_[3] = {0.2f, 0.2f, 0.2f};
+    float uiScale_ = 1.0f;
+    ImGuiStyle baseStyle_ = {};
 
     GpuQueue queue_ = {};
     GpuPipeline pipeline_ = {};

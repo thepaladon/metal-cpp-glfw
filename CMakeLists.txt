@@ -29,7 +29,7 @@ CPMAddPackage("gh:glfw/glfw#3.4")
 CPMAddPackage(
     NAME imgui
     GITHUB_REPOSITORY ocornut/imgui
-    GIT_TAG v1.92.5
+    GIT_TAG v1.92.5-docking
 )
 
 CPMAddPackage(
