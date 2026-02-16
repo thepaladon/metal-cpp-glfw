@@ -12,7 +12,9 @@ endif()
 
 add_executable(metal_cpp_test
     src/main.cpp
+    src/core/aa_global_new.cpp
     src/core/aa_eastl_new.cpp
+    src/core/aa_memory_tracker.cpp
     src/core/aa_path.cpp
     src/core/aa_platform.cpp
     src/core/aa_file_common.cpp

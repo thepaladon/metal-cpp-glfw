@@ -1,5 +1,6 @@
 #include "render/renderer_opengl.hpp"
 
+#include "core/aa_memory_tracker.hpp"
 #include "gpu/gpu_api.hpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -74,6 +75,34 @@ class RendererOpenGL final : public Renderer
         if (ImGui::SliderFloat("UI Scale", &uiScale_, 0.5f, 3.0f, "%.2fx"))
         {
             applyUiScale();
+        }
+        ImGui::End();
+
+        ImGui::Begin("Memory Tracker");
+        const aa::AAMemoryStats memStats = aa::AAMemoryTrackerGetStats();
+        ImGui::Text("Live Bytes: %llu", static_cast<unsigned long long>(memStats.liveBytes));
+        ImGui::Text("Live Allocs: %llu", static_cast<unsigned long long>(memStats.liveCount));
+        ImGui::Text("Peak Bytes: %llu", static_cast<unsigned long long>(memStats.peakBytes));
+        ImGui::Text("Total Allocs: %llu", static_cast<unsigned long long>(memStats.totalAllocs));
+        ImGui::Text("Total Frees: %llu", static_cast<unsigned long long>(memStats.totalFrees));
+        ImGui::Text("Dropped Records: %llu", static_cast<unsigned long long>(memStats.droppedRecords));
+
+        aa::AAMemoryAllocInfo live[64] = {};
+        const aa::usize liveCount = aa::AAMemoryTrackerCollectLive(live, 64);
+        ImGui::Separator();
+        ImGui::Text("Live Allocation Sample: %llu", static_cast<unsigned long long>(liveCount));
+        for (aa::usize i = 0; i < liveCount; ++i)
+        {
+            const aa::AAMemoryAllocInfo &alloc = live[i];
+            ImGui::Text("#%llu ptr=%p size=%llu tag=%s",
+                        static_cast<unsigned long long>(alloc.sequence),
+                        alloc.ptr,
+                        static_cast<unsigned long long>(alloc.size),
+                        alloc.tag != nullptr ? alloc.tag : "n/a");
+            if (alloc.file != nullptr)
+            {
+                ImGui::Text("  at %s:%d", alloc.file, alloc.line);
+            }
         }
         ImGui::End();
 
