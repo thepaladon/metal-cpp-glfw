@@ -1,18 +1,28 @@
+#include "core/aa_file.hpp"
+#include "core/aa_memory.hpp"
+#include "core/aa_platform.hpp"
+#include "core/aa_types.hpp"
 #include "render/renderer.hpp"
 
 #include <GLFW/glfw3.h>
 
-#include <chrono>
 #include <cstdio>
-#include <memory>
 
-static void glfw_error_callback(int error, const char *description)
+using namespace aa;
+
+static void glfw_error_callback(i32 error, const char *description)
 {
-    std::fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+    fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
 int main()
 {
+    const AAPath cwd = AAGetCurrentWorkingDirectory();
+    const AAPath buildDir = cwd.EndsWith("build") ? cwd : cwd.Join("build");
+    const AAPath appCacheDir = buildDir.Join(".appcache");
+    AACreateDirectories(appCacheDir);
+    AAWriteAllText(appCacheDir.Join("hello.txt"), "hello world");
+
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
     {
@@ -35,7 +45,7 @@ int main()
         return 1;
     }
 
-    std::unique_ptr<Renderer> renderer = createRenderer();
+    AAPtr<Renderer> renderer = createRenderer();
     if (!renderer || !renderer->initialize(window))
     {
         glfwDestroyWindow(window);
@@ -43,22 +53,21 @@ int main()
         return 1;
     }
 
-    using Clock = std::chrono::high_resolution_clock;
-    Clock::time_point lastTime = Clock::now();
-    bool escWasDown = false;
+    f64 lastTime = glfwGetTime();
+    b8 escWasDown = false;
 #if defined(__APPLE__)
-    bool cmdWWasDown = false;
+    b8 cmdWWasDown = false;
 #endif
 
     while (!glfwWindowShouldClose(window))
     {
-        Clock::time_point now = Clock::now();
-        float deltaTime = std::chrono::duration<float>(now - lastTime).count();
+        const f64 now = glfwGetTime();
+        const f32 deltaTime = static_cast<f32>(now - lastTime);
         lastTime = now;
 
         glfwPollEvents();
 
-        const bool escDown = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
+        const b8 escDown = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
         if (escDown && !escWasDown)
         {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -66,10 +75,10 @@ int main()
         escWasDown = escDown;
 
 #if defined(__APPLE__)
-        const bool wDown = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS;
-        const bool cmdDown = glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS ||
-                             glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS;
-        const bool cmdWDown = wDown && cmdDown;
+        const b8 wDown = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS;
+        const b8 cmdDown = glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS ||
+                           glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS;
+        const b8 cmdWDown = wDown && cmdDown;
         if (cmdWDown && !cmdWWasDown)
         {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
