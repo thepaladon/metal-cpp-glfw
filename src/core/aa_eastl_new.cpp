@@ -1,10 +1,50 @@
 #include "core/aa_build_config.hpp"
 #include "core/aa_memory_tracker.hpp"
 
+#include <stddef.h>
 #include <stdlib.h>
 
 namespace
 {
+
+void *AAEastlAllocAligned(size_t size, size_t alignment)
+{
+    if (alignment <= alignof(void *))
+    {
+        return malloc(size);
+    }
+
+#if defined(_WIN32)
+    return _aligned_malloc(size, alignment);
+#else
+    void *mem = nullptr;
+    if (posix_memalign(&mem, alignment, size) != 0)
+    {
+        return nullptr;
+    }
+    return mem;
+#endif
+}
+
+void AAEastlFreeAligned(void *ptr, size_t alignment)
+{
+    if (ptr == nullptr)
+    {
+        return;
+    }
+
+#if defined(_WIN32)
+    if (alignment <= alignof(void *))
+    {
+        free(ptr);
+        return;
+    }
+    _aligned_free(ptr);
+#else
+    (void)alignment;
+    free(ptr);
+#endif
+}
 
 const void *AAReturnAddress()
 {
@@ -17,7 +57,7 @@ const void *AAReturnAddress()
 
 } // namespace
 
-void *operator new[](unsigned long size,
+void *operator new[](size_t size,
                      const char *name,
                      int,
                      unsigned,
@@ -31,26 +71,17 @@ void *operator new[](unsigned long size,
     return ptr;
 }
 
-void *operator new[](unsigned long size,
-                     unsigned long alignment,
-                     unsigned long,
+void *operator new[](size_t size,
+                     size_t alignment,
+                     size_t,
                      const char *name,
                      int,
                      unsigned,
                      const char *file,
                      int line)
 {
-    if (alignment <= alignof(void *))
-    {
-        void *ptr = malloc(size);
-#if AA_CFG_MEMORY_TRACKING
-        aa::AAMemoryTrackerOnAlloc(ptr, size, name, file, line, AAReturnAddress());
-#endif
-        return ptr;
-    }
-
-    void *mem = nullptr;
-    if (posix_memalign(&mem, alignment, size) != 0)
+    void *mem = AAEastlAllocAligned(size, alignment);
+    if (mem == nullptr)
     {
         mem = malloc(size);
     }
@@ -74,8 +105,8 @@ void operator delete[](void *p,
 }
 
 void operator delete[](void *p,
-                       unsigned long,
-                       unsigned long,
+                       size_t alignment,
+                       size_t,
                        const char *,
                        int,
                        unsigned,
@@ -85,5 +116,5 @@ void operator delete[](void *p,
 #if AA_CFG_MEMORY_TRACKING
     aa::AAMemoryTrackerOnFree(p);
 #endif
-    free(p);
+    AAEastlFreeAligned(p, alignment);
 }
