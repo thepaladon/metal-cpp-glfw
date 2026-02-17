@@ -84,6 +84,8 @@ int main()
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
         cmdWWasDown = cmdWDown;
+
+        //i32* test = AA_NEW_TAG("testing") i32;
 #endif
 
         renderer->renderFrame(deltaTime);

@@ -1,0 +1,27 @@
+#pragma once
+
+// Core feature toggles. Override with compiler definitions if needed.
+
+#ifndef AA_CFG_MEMORY_TRACKING
+#define AA_CFG_MEMORY_TRACKING 1
+#endif
+
+#ifndef AA_CFG_MEMORY_TRACKING_UI
+#define AA_CFG_MEMORY_TRACKING_UI 1
+#endif
+
+#ifndef AA_CFG_MEMORY_TRACKING_CALLSTACK
+#define AA_CFG_MEMORY_TRACKING_CALLSTACK 1
+#endif
+
+#ifndef AA_CFG_MEMORY_TRACKING_SYMBOLS
+#define AA_CFG_MEMORY_TRACKING_SYMBOLS 1
+#endif
+
+#ifndef AA_CFG_MEMORY_TRACKING_MAX_ALLOCS
+#define AA_CFG_MEMORY_TRACKING_MAX_ALLOCS 16384
+#endif
+
+#ifndef AA_CFG_MEMORY_TRACKING_MAX_FRAMES
+#define AA_CFG_MEMORY_TRACKING_MAX_FRAMES 8
+#endif

@@ -186,33 +186,66 @@ class RendererMetal final : public Renderer
         ImGui::InputText("Type here", inputBuf_, sizeof(inputBuf_));
         ImGui::End();
 
+#if AA_CFG_MEMORY_TRACKING && AA_CFG_MEMORY_TRACKING_UI
         ImGui::Begin("Memory Tracker");
         const aa::AAMemoryStats memStats = aa::AAMemoryTrackerGetStats();
-        ImGui::Text("Live Bytes: %llu", static_cast<unsigned long long>(memStats.liveBytes));
+        auto memoryUnitText = [](aa::u64 bytes, char *out, aa::usize outSize) {
+            static const char *units[] = {"B", "KB", "MB", "GB", "TB"};
+            double value = static_cast<double>(bytes);
+            aa::usize unitIndex = 0;
+            while (value >= 1024.0 && unitIndex < 4)
+            {
+                value /= 1024.0;
+                ++unitIndex;
+            }
+            snprintf(out, static_cast<size_t>(outSize), "%.2f %s", value, units[unitIndex]);
+        };
+
+        char liveBytesText[32] = {};
+        char peakBytesText[32] = {};
+        memoryUnitText(memStats.liveBytes, liveBytesText, sizeof(liveBytesText));
+        memoryUnitText(memStats.peakBytes, peakBytesText, sizeof(peakBytesText));
+
+        ImGui::Text("Live Bytes: %s", liveBytesText);
         ImGui::Text("Live Allocs: %llu", static_cast<unsigned long long>(memStats.liveCount));
-        ImGui::Text("Peak Bytes: %llu", static_cast<unsigned long long>(memStats.peakBytes));
+        ImGui::Text("Peak Bytes: %s", peakBytesText);
         ImGui::Text("Total Allocs: %llu", static_cast<unsigned long long>(memStats.totalAllocs));
         ImGui::Text("Total Frees: %llu", static_cast<unsigned long long>(memStats.totalFrees));
         ImGui::Text("Dropped Records: %llu", static_cast<unsigned long long>(memStats.droppedRecords));
 
-        aa::AAMemoryAllocInfo live[64] = {};
-        const aa::usize liveCount = aa::AAMemoryTrackerCollectLive(live, 64);
+        static bool taggedOnly = false;
+        ImGui::Checkbox("Tagged Only", &taggedOnly);
+
+        aa::AAMemoryGroupInfo groups[64] = {};
+        const aa::usize groupCount = aa::AAMemoryTrackerCollectGroups(groups, 64, taggedOnly);
         ImGui::Separator();
-        ImGui::Text("Live Allocation Sample: %llu", static_cast<unsigned long long>(liveCount));
-        for (aa::usize i = 0; i < liveCount; ++i)
+        ImGui::Text("Group Sample: %llu", static_cast<unsigned long long>(groupCount));
+        for (aa::usize i = 0; i < groupCount; ++i)
         {
-            const aa::AAMemoryAllocInfo &alloc = live[i];
-            ImGui::Text("#%llu ptr=%p size=%llu tag=%s",
-                        static_cast<unsigned long long>(alloc.sequence),
-                        alloc.ptr,
-                        static_cast<unsigned long long>(alloc.size),
-                        alloc.tag != nullptr ? alloc.tag : "n/a");
-            if (alloc.file != nullptr)
+            const aa::AAMemoryGroupInfo &group = groups[i];
+            char symbol[256] = {};
+            char groupBytesText[32] = {};
+            const char *symbolName = aa::AAMemoryTrackerSymbolize(group.frame0, symbol, sizeof(symbol));
+            memoryUnitText(group.liveBytes, groupBytesText, sizeof(groupBytesText));
+            ImGui::Text("bytes=%s count=%llu tag=%s",
+                        groupBytesText,
+                        static_cast<unsigned long long>(group.liveCount),
+                        group.tag != nullptr ? group.tag : "n/a");
+            if (group.file != nullptr)
             {
-                ImGui::Text("  at %s:%d", alloc.file, alloc.line);
+                ImGui::Text("  file %s:%d", group.file, group.line);
+            }
+            if (symbolName != nullptr)
+            {
+                ImGui::Text("  fn %s", symbolName);
+            }
+            else
+            {
+                ImGui::Text("  frame0 %p", group.frame0);
             }
         }
         ImGui::End();
+#endif
 
         ce->setBytes(&time_, sizeof(time_), 0);
 

@@ -1,3 +1,4 @@
+#include "core/aa_build_config.hpp"
 #include "core/aa_memory_tracker.hpp"
 
 #include <stdlib.h>
@@ -24,7 +25,9 @@ void *operator new[](unsigned long size,
                      int line)
 {
     void *ptr = malloc(size);
+#if AA_CFG_MEMORY_TRACKING
     aa::AAMemoryTrackerOnAlloc(ptr, size, name, file, line, AAReturnAddress());
+#endif
     return ptr;
 }
 
@@ -40,7 +43,9 @@ void *operator new[](unsigned long size,
     if (alignment <= alignof(void *))
     {
         void *ptr = malloc(size);
+#if AA_CFG_MEMORY_TRACKING
         aa::AAMemoryTrackerOnAlloc(ptr, size, name, file, line, AAReturnAddress());
+#endif
         return ptr;
     }
 
@@ -49,7 +54,9 @@ void *operator new[](unsigned long size,
     {
         mem = malloc(size);
     }
+#if AA_CFG_MEMORY_TRACKING
     aa::AAMemoryTrackerOnAlloc(mem, size, name, file, line, AAReturnAddress());
+#endif
     return mem;
 }
 
@@ -60,7 +67,9 @@ void operator delete[](void *p,
                        const char *,
                        int) noexcept
 {
+#if AA_CFG_MEMORY_TRACKING
     aa::AAMemoryTrackerOnFree(p);
+#endif
     free(p);
 }
 
@@ -73,6 +82,8 @@ void operator delete[](void *p,
                        const char *,
                        int) noexcept
 {
+#if AA_CFG_MEMORY_TRACKING
     aa::AAMemoryTrackerOnFree(p);
+#endif
     free(p);
 }
