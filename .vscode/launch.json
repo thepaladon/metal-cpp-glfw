@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch (lldb)",
+      "name": "Launch Debug (macOS LLDB)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/metal_cpp_test",
@@ -11,7 +11,41 @@
       "stopAtEntry": false,
       "externalConsole": false,
       "MIMode": "lldb",
-      "preLaunchTask": "cmake: build"
+      "preLaunchTask": "cmake: build debug"
+    },
+    {
+      "name": "Launch Release (macOS LLDB)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/metal_cpp_test",
+      "args": [],
+      "cwd": "${workspaceFolder}/build",
+      "stopAtEntry": false,
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "preLaunchTask": "cmake: build release"
+    },
+    {
+      "name": "Launch Debug (MSVC)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/Debug/metal_cpp_test.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "externalConsole": false,
+      "preLaunchTask": "cmake: build debug"
+    },
+    {
+      "name": "Launch Release (MSVC)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/Release/metal_cpp_test.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "externalConsole": false,
+      "preLaunchTask": "cmake: build release"
     }
   ]
 }
