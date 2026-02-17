@@ -20,7 +20,6 @@
 #include <AppKit/AppKit.hpp>
 #include "imgui_impl_metal.h"
 
-#include <cassert>
 #include <chrono>
 #include <cstdio>
 #include <memory>
@@ -114,8 +113,19 @@ class RendererMetal final : public Renderer
         baseStyle_ = ImGui::GetStyle();
         applyUiScale();
 
-        assert(ImGui_ImplGlfw_InitForOther(window_, true));
-        assert(ImGui_ImplMetal_Init(device_));
+        if (!ImGui_ImplGlfw_InitForOther(window_, true))
+        {
+            std::printf("ImGui_ImplGlfw_InitForOther failed\n");
+            ImGui::DestroyContext();
+            return false;
+        }
+        if (!ImGui_ImplMetal_Init(device_))
+        {
+            std::printf("ImGui_ImplMetal_Init failed\n");
+            ImGui_ImplGlfw_Shutdown();
+            ImGui::DestroyContext();
+            return false;
+        }
 
         imguiRPD_ = MTL::RenderPassDescriptor::renderPassDescriptor();
         imguiRPD_->alloc();

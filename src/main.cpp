@@ -73,8 +73,6 @@ int main()
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
 
-		u32* test = AA_NEW_TAG("testing") u32(0);
-
         escWasDown = escDown;
 
 #if defined(__APPLE__)

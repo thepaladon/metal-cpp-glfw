@@ -8,7 +8,7 @@
 
 #include <GLFW/glfw3.h>
 
-#include <cassert>
+#include <cstdio>
 #include <memory>
 
 namespace
@@ -45,8 +45,19 @@ class RendererOpenGL final : public Renderer
         baseStyle_ = ImGui::GetStyle();
         applyUiScale();
 
-        assert(ImGui_ImplGlfw_InitForOpenGL(window_, true));
-        assert(ImGui_ImplOpenGL3_Init("#version 330"));
+        if (!ImGui_ImplGlfw_InitForOpenGL(window_, true))
+        {
+            std::fprintf(stderr, "ImGui_ImplGlfw_InitForOpenGL failed\n");
+            ImGui::DestroyContext();
+            return false;
+        }
+        if (!ImGui_ImplOpenGL3_Init("#version 330"))
+        {
+            std::fprintf(stderr, "ImGui_ImplOpenGL3_Init failed\n");
+            ImGui_ImplGlfw_Shutdown();
+            ImGui::DestroyContext();
+            return false;
+        }
 
         queue_ = gpuCreateQueue();
         pipeline_ = gpuCreateGraphicsPipeline({}, {}, {});
@@ -140,7 +151,6 @@ class RendererOpenGL final : public Renderer
 #endif
 
         ImGui::Render();
-        ImGuiIO &io = ImGui::GetIO();
 
         int width = 0;
         int height = 0;
@@ -148,9 +158,9 @@ class RendererOpenGL final : public Renderer
         glViewport(0, 0, width, height);
         glClearColor(clearColor_[0], clearColor_[1], clearColor_[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+        ImGuiIO &io = ImGui::GetIO();
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {
             GLFWwindow *backupCurrentContext = glfwGetCurrentContext();

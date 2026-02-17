@@ -50,6 +50,40 @@
       "problemMatcher": [
         "$msCompile"
       ]
+    },
+    {
+      "label": "cmake: build relwithdebinfo",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "${workspaceFolder}/build",
+        "--config",
+        "RelWithDebInfo",
+        "--target",
+        "metal_cpp_test"
+      ],
+      "dependsOn": "cmake: configure",
+      "problemMatcher": [
+        "$msCompile"
+      ]
+    },
+    {
+      "label": "cmake: build minsizerel",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "${workspaceFolder}/build",
+        "--config",
+        "MinSizeRel",
+        "--target",
+        "metal_cpp_test"
+      ],
+      "dependsOn": "cmake: configure",
+      "problemMatcher": [
+        "$msCompile"
+      ]
     }
   ]
 }

@@ -55,7 +55,7 @@ void *gpuMalloc(std::size_t bytes, std::size_t align, MEMORY)
 void gpuFree(void *ptr)
 {
 #if defined(_MSC_VER)
-    _aligned_free(ptr);
+    std::free(ptr);
 #else
     std::free(ptr);
 #endif
