@@ -6,3 +6,12 @@
 
 ## Code Style
 - Do not use snake_case for anything
+
+## Build Workflow
+- Keep generator artifacts in `build/Garbage/`.
+- Keep runnable output in `build/Build/<Config>` and link/intermediate libs in `build/Intermediate/<Config>`.
+- Preferred commands:
+  - Configure (Ninja): `cmake --preset ninja`
+  - Build Debug (Ninja): `cmake --build --preset ninja-debug`
+  - Build Release (Ninja): `cmake --build --preset ninja-release`
+- Keep `build/Garbage` hidden on Windows (`attrib +h build\\Garbage`).

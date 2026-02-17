@@ -6,6 +6,13 @@ The `metal-cpp-extensions` code was taken from this [Apple sample](https://devel
 
 Note that Apple do not support `metal-cpp-extensions` and there are a couple of extensions that have been made to it, however it's pretty simple to extend yourself.
 
+## Bootstrap
+
+- Windows: `./setupWindows.cmd`
+- macOS: `./setupMacOs.sh`
+
+Both scripts install/check required tools and run configure + Debug build.
+
 ## Cross-platform status
 
 - macOS path: GLFW + Metal + ImGui.

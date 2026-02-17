@@ -1,0 +1,64 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 30,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "vs",
+      "displayName": "VS 2026 (metadata in build/Garbage/vs)",
+      "generator": "Visual Studio 18 2026",
+      "binaryDir": "${sourceDir}/build/Garbage/vs",
+      "cacheVariables": {
+        "AA_OUTPUT_ROOT": "${sourceDir}/build",
+        "AA_FETCH_DEPS": "ON"
+      }
+    },
+    {
+      "name": "ninja",
+      "displayName": "Ninja Multi-Config (metadata in build/Garbage/ninja)",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/build/Garbage/ninja",
+      "cacheVariables": {
+        "AA_OUTPUT_ROOT": "${sourceDir}/build",
+        "AA_FETCH_DEPS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "vs",
+      "configuration": "Debug",
+      "targets": [
+        "metal_cpp_test"
+      ]
+    },
+    {
+      "name": "release",
+      "configurePreset": "vs",
+      "configuration": "Release",
+      "targets": [
+        "metal_cpp_test"
+      ]
+    },
+    {
+      "name": "ninja-debug",
+      "configurePreset": "ninja",
+      "configuration": "Debug",
+      "targets": [
+        "metal_cpp_test"
+      ]
+    },
+    {
+      "name": "ninja-release",
+      "configurePreset": "ninja",
+      "configuration": "Release",
+      "targets": [
+        "metal_cpp_test"
+      ]
+    }
+  ]
+}
