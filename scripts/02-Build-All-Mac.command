@@ -14,10 +14,10 @@ if [[ ! -f "$repoRoot/scripts/bootstrapDeps.sh" || ! -f "$repoRoot/scripts/gener
 fi
 
 echo "[1/3] Syncing dependencies..."
-"$repoRoot/scripts/bootstrapDeps.sh"
+bash "$repoRoot/scripts/bootstrapDeps.sh"
 
 echo "[2/3] Generating GNU Make project files..."
-"$repoRoot/scripts/generateProjectFiles.sh" gmake2
+bash "$repoRoot/scripts/generateProjectFiles.sh" gmake2
 
 echo "[3/3] Building Debug and Release..."
 make -C "$makeRoot" config=debug

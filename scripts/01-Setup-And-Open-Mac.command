@@ -13,10 +13,10 @@ if [[ ! -f "$repoRoot/scripts/bootstrapDeps.sh" || ! -f "$repoRoot/scripts/gener
 fi
 
 echo "[1/2] Syncing dependencies..."
-"$repoRoot/scripts/bootstrapDeps.sh"
+bash "$repoRoot/scripts/bootstrapDeps.sh"
 
 echo "[2/2] Generating Xcode project files..."
-"$repoRoot/scripts/generateProjectFiles.sh" xcode4
+bash "$repoRoot/scripts/generateProjectFiles.sh" xcode4
 
 workspacePath="$repoRoot/build/ProjectFiles/xcode4/metalCppGlfw.xcworkspace"
 projectPath="$repoRoot/build/ProjectFiles/xcode4/metalCppGlfw.xcodeproj"
