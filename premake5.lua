@@ -125,7 +125,7 @@ project "eastl"
         "EASTL_OPENSOURCE=1"
     }
 
-    includedirs {
+    externalincludedirs {
         eastlPath .. "/include",
         eabaseIncludePath
     }
@@ -160,7 +160,10 @@ project "dearImgui"
 
     includedirs {
         imguiPath,
-        imguiPath .. "/backends",
+        imguiPath .. "/backends"
+    }
+
+    externalincludedirs {
         glfwPath .. "/include"
     }
 
@@ -186,7 +189,7 @@ project "dearImgui"
             imguiPath .. "/backends/imgui_impl_metal.mm"
         }
         defines { "IMGUI_IMPL_METAL_CPP" }
-        includedirs {
+        externalincludedirs {
             metalCppPath,
             metalCppPath .. "/metal-cpp"
         }
@@ -213,9 +216,12 @@ project "metalCppTest"
 
     includedirs {
         "src",
-        glfwPath .. "/include",
         imguiPath,
         imguiPath .. "/backends",
+    }
+
+    externalincludedirs {
+        glfwPath .. "/include",
         eastlPath .. "/include",
         eabaseIncludePath
     }
@@ -278,7 +284,10 @@ project "metalCppTest"
             "src/render/renderer_metal.hpp",
             "src/metal-cpp-extensions/**.hpp"
         }
-        includedirs {
+        defines {
+            "IMGUI_IMPL_METAL_CPP"
+        }
+        externalincludedirs {
             metalCppPath,
             "src/metal-cpp-extensions"
         }
@@ -286,7 +295,9 @@ project "metalCppTest"
             "AppKit.framework",
             "Cocoa.framework",
             "Foundation.framework",
+            "IOKit.framework",
             "Metal.framework",
-            "QuartzCore.framework"
+            "QuartzCore.framework",
+            "CoreFoundation.framework"
         }
     filter {}
