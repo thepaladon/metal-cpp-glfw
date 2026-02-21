@@ -39,8 +39,8 @@ if errorlevel 1 goto :failed
 
 echo.
 echo Build succeeded.
-echo Debug executable:   %repoRoot%\build\Build\Debug\metalCppTest.exe
-echo Release executable: %repoRoot%\build\Build\Release\metalCppTest.exe
+echo Debug executable:   %repoRoot%\build\Build\vs2022\Debug\metalCppTest.exe
+echo Release executable: %repoRoot%\build\Build\vs2022\Release\metalCppTest.exe
 if defined CI goto :noPause
 pause
 :noPause

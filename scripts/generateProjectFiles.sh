@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-action="${1:-gmake2}"
+action="${1:-gmake}"
+
+if [[ "$action" == "gmake2" ]]; then
+  action="gmake"
+fi
 case "$action" in
-  gmake2|xcode4) ;;
+  gmake|xcode4) ;;
   *)
     echo "Unsupported action: $action"
-    echo "Usage: ./scripts/generateProjectFiles.sh [gmake2|xcode4]"
+    echo "Usage: ./scripts/generateProjectFiles.sh [gmake|xcode4]"
     exit 1
     ;;
 esac

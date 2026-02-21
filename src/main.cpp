@@ -1,3 +1,4 @@
+#include "core/aa_assert.hpp"
 #include "core/aa_file.hpp"
 #include "core/aa_memory.hpp"
 #include "core/aa_platform.hpp"
@@ -55,6 +56,7 @@ int main()
 
     f64 lastTime = glfwGetTime();
     b8 escWasDown = false;
+    b8 assertKeyWasDown = false;
 #if defined(__APPLE__)
     b8 cmdWWasDown = false;
 #endif
@@ -74,6 +76,13 @@ int main()
         }
 
         escWasDown = escDown;
+
+        const b8 assertKeyDown = glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS;
+        if (assertKeyDown && !assertKeyWasDown)
+        {
+            AAAssertMessage(false, "F2 assert test. Choose Ignore Once or Mute Assert.");
+        }
+        assertKeyWasDown = assertKeyDown;
 
 #if defined(__APPLE__)
         const b8 wDown = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS;

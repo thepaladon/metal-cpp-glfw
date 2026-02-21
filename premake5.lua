@@ -19,13 +19,15 @@ local eastlPath = thirdPartyPath .. "/EASTL"
 local eabasePath = thirdPartyPath .. "/EABase"
 local eabaseIncludePath = eabasePath .. "/include/Common"
 local metalCppPath = thirdPartyPath .. "/metal-cpp"
+local intermediateOutDir = "build/Intermediate/%{_ACTION}/%{cfg.buildcfg}"
+local appOutDir = "build/Build/%{_ACTION}/%{cfg.buildcfg}"
 
 project "glfw"
     kind "StaticLib"
     language "C"
     warnings "Off"
-    targetdir "build/Intermediate/%{cfg.buildcfg}"
-    objdir "build/Intermediate/%{cfg.buildcfg}/%{prj.name}"
+    targetdir(intermediateOutDir)
+    objdir (intermediateOutDir .. "/%{prj.name}")
 
     includedirs {
         glfwPath .. "/include",
@@ -115,8 +117,8 @@ project "eastl"
     kind "StaticLib"
     language "C++"
     cppdialect "C++17"
-    targetdir "build/Intermediate/%{cfg.buildcfg}"
-    objdir "build/Intermediate/%{cfg.buildcfg}/%{prj.name}"
+    targetdir(intermediateOutDir)
+    objdir (intermediateOutDir .. "/%{prj.name}")
 
     defines {
         "_CHAR16T",
@@ -139,8 +141,8 @@ project "gpuApi"
     kind "StaticLib"
     language "C++"
     cppdialect "C++17"
-    targetdir "build/Intermediate/%{cfg.buildcfg}"
-    objdir "build/Intermediate/%{cfg.buildcfg}/%{prj.name}"
+    targetdir(intermediateOutDir)
+    objdir (intermediateOutDir .. "/%{prj.name}")
 
     includedirs {
         "src"
@@ -155,8 +157,8 @@ project "dearImgui"
     kind "StaticLib"
     language "C++"
     cppdialect "C++17"
-    targetdir "build/Intermediate/%{cfg.buildcfg}"
-    objdir "build/Intermediate/%{cfg.buildcfg}/%{prj.name}"
+    targetdir(intermediateOutDir)
+    objdir (intermediateOutDir .. "/%{prj.name}")
 
     includedirs {
         imguiPath,
@@ -204,8 +206,8 @@ project "metalCppTest"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++17"
-    targetdir "build/Build/%{cfg.buildcfg}"
-    objdir "build/Intermediate/%{cfg.buildcfg}/%{prj.name}"
+    targetdir(appOutDir)
+    objdir (intermediateOutDir .. "/%{prj.name}")
 
     dependson {
         "glfw",
@@ -228,6 +230,9 @@ project "metalCppTest"
 
     files {
         "src/main.cpp",
+        "src/core/aa_assert.cpp",
+        "src/core/aa_assert.hpp",
+        "src/core/aa_assert_internal.hpp",
         "src/core/aa_build_config.hpp",
         "src/core/aa_containers.hpp",
         "src/core/aa_eastl_new.cpp",
@@ -256,12 +261,14 @@ project "metalCppTest"
 
     filter "system:windows"
         files {
+            "src/core/aa_assert_windows.cpp",
             "src/core/aa_file_windows.cpp",
             "src/render/renderer_opengl.cpp",
             "src/render/renderer_opengl.hpp"
         }
     filter "system:linux"
         files {
+            "src/core/aa_assert_stub.cpp",
             "src/core/aa_file_macos.cpp",
             "src/render/renderer_opengl.cpp",
             "src/render/renderer_opengl.hpp"
@@ -279,6 +286,7 @@ project "metalCppTest"
 
     filter "system:macosx"
         files {
+            "src/core/aa_assert_macos.cpp",
             "src/core/aa_file_macos.cpp",
             "src/render/renderer_metal.cpp",
             "src/render/renderer_metal.hpp",

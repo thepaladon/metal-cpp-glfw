@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("vs2022", "gmake2", "xcode4")]
+    [ValidateSet("vs2022", "gmake", "gmake2", "xcode4")]
     [string]$Action = "vs2022"
 )
 
@@ -18,6 +18,9 @@ New-Item -ItemType Directory -Force -Path $projectFilesDir | Out-Null
 
 Push-Location $repoRoot
 try {
+    if ($Action -eq "gmake2") {
+        $Action = "gmake"
+    }
     premake5 $Action
 }
 finally {

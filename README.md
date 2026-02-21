@@ -53,13 +53,13 @@ macOS (Xcode):
 
 Linux/macOS (GNU Make):
 ```bash
-./scripts/generateProjectFiles.sh gmake2
+./scripts/generateProjectFiles.sh gmake
 ```
 
 Generated project files go to `build/ProjectFiles/<action>`.
 Build outputs are kept in:
-- `build/Build/<Config>` for runnable binaries
-- `build/Intermediate/<Config>` for object files and static libs
+- `build/Build/<action>/<Config>` for runnable binaries
+- `build/Intermediate/<action>/<Config>` for object files and static libs
 
 ### Build
 
@@ -68,8 +68,8 @@ Windows:
 
 macOS/Linux with GNU Make:
 ```bash
-make -C build/ProjectFiles/gmake2 config=debug
-make -C build/ProjectFiles/gmake2 config=release
+make -C build/ProjectFiles/gmake config=debug
+make -C build/ProjectFiles/gmake config=release
 ```
 
 ## Cross-platform status
