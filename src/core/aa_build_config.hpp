@@ -3,7 +3,7 @@
 // Core feature toggles. Override with compiler definitions if needed.
 
 #ifndef AA_CFG_MEMORY_TRACKING
-#define AA_CFG_MEMORY_TRACKING 1
+#define AA_CFG_MEMORY_TRACKING 0
 #endif
 
 #ifndef AA_CFG_MEMORY_TRACKING_UI

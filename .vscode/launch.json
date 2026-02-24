@@ -5,93 +5,47 @@
       "name": "Launch Debug (macOS LLDB)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/metal_cpp_test",
+      "program": "${workspaceFolder}/build/Build/gmake/Debug/metalCppTest",
       "args": [],
-      "cwd": "${workspaceFolder}/build",
+      "cwd": "${workspaceFolder}/build/Build/gmake/Debug",
       "stopAtEntry": false,
       "externalConsole": false,
       "MIMode": "lldb",
-      "preLaunchTask": "cmake: build debug"
+      "preLaunchTask": "premake: build debug (macOS/Linux)"
     },
     {
       "name": "Launch Release (macOS LLDB)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/metal_cpp_test",
+      "program": "${workspaceFolder}/build/Build/gmake/Release/metalCppTest",
       "args": [],
-      "cwd": "${workspaceFolder}/build",
+      "cwd": "${workspaceFolder}/build/Build/gmake/Release",
       "stopAtEntry": false,
       "externalConsole": false,
       "MIMode": "lldb",
-      "preLaunchTask": "cmake: build release"
-    },
-    {
-      "name": "Launch RelWithDebInfo (macOS LLDB)",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/build/metal_cpp_test",
-      "args": [],
-      "cwd": "${workspaceFolder}/build",
-      "stopAtEntry": false,
-      "externalConsole": false,
-      "MIMode": "lldb",
-      "preLaunchTask": "cmake: build relwithdebinfo"
-    },
-    {
-      "name": "Launch MinSizeRel (macOS LLDB)",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/build/metal_cpp_test",
-      "args": [],
-      "cwd": "${workspaceFolder}/build",
-      "stopAtEntry": false,
-      "externalConsole": false,
-      "MIMode": "lldb",
-      "preLaunchTask": "cmake: build minsizerel"
+      "preLaunchTask": "premake: build release (macOS/Linux)"
     },
     {
       "name": "Launch Debug (MSVC)",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/Debug/metal_cpp_test.exe",
+      "program": "${workspaceFolder}/build/Build/vs2022/Debug/metalCppTest.exe",
       "args": [],
       "cwd": "${workspaceFolder}",
       "stopAtEntry": false,
       "externalConsole": false,
-      "preLaunchTask": "cmake: build debug"
+      "preLaunchTask": "premake: build debug (Windows)"
     },
     {
       "name": "Launch Release (MSVC)",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/Release/metal_cpp_test.exe",
+      "program": "${workspaceFolder}/build/Build/vs2022/Release/metalCppTest.exe",
       "args": [],
       "cwd": "${workspaceFolder}",
       "stopAtEntry": false,
       "externalConsole": false,
-      "preLaunchTask": "cmake: build release"
-    },
-    {
-      "name": "Launch RelWithDebInfo (MSVC)",
-      "type": "cppvsdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/build/RelWithDebInfo/metal_cpp_test.exe",
-      "args": [],
-      "cwd": "${workspaceFolder}",
-      "stopAtEntry": false,
-      "externalConsole": false,
-      "preLaunchTask": "cmake: build relwithdebinfo"
-    },
-    {
-      "name": "Launch MinSizeRel (MSVC)",
-      "type": "cppvsdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/build/MinSizeRel/metal_cpp_test.exe",
-      "args": [],
-      "cwd": "${workspaceFolder}",
-      "stopAtEntry": false,
-      "externalConsole": false,
-      "preLaunchTask": "cmake: build minsizerel"
+      "preLaunchTask": "premake: build release (Windows)"
     }
   ]
 }

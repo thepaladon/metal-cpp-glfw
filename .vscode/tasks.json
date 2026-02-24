@@ -2,88 +2,88 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "cmake: configure",
+      "label": "premake: build debug (macOS/Linux)",
       "type": "shell",
-      "command": "cmake",
+      "command": "bash",
       "args": [
-        "-S",
-        "${workspaceFolder}",
-        "-B",
-        "${workspaceFolder}/build"
+        "-lc",
+        "set -euo pipefail; ./scripts/generateProjectFiles.sh gmake; make -C ./build/ProjectFiles/gmake config=debug metalCppTest"
       ],
-      "problemMatcher": []
-    },
-    {
-      "label": "cmake: build debug",
-      "type": "shell",
-      "command": "cmake",
-      "args": [
-        "--build",
-        "${workspaceFolder}/build",
-        "--config",
-        "Debug",
-        "--target",
-        "metal_cpp_test"
-      ],
-      "dependsOn": "cmake: configure",
       "group": {
         "kind": "build",
         "isDefault": true
       },
       "problemMatcher": [
-        "$msCompile"
-      ]
+        "$gcc"
+      ],
+      "linux": {
+        "problemMatcher": [
+          "$gcc"
+        ]
+      },
+      "osx": {
+        "problemMatcher": [
+          "$gcc"
+        ]
+      }
     },
     {
-      "label": "cmake: build release",
+      "label": "premake: build release (macOS/Linux)",
       "type": "shell",
-      "command": "cmake",
+      "command": "bash",
       "args": [
-        "--build",
-        "${workspaceFolder}/build",
-        "--config",
-        "Release",
-        "--target",
-        "metal_cpp_test"
+        "-lc",
+        "set -euo pipefail; ./scripts/generateProjectFiles.sh gmake; make -C ./build/ProjectFiles/gmake config=release metalCppTest"
       ],
-      "dependsOn": "cmake: configure",
       "problemMatcher": [
-        "$msCompile"
-      ]
+        "$gcc"
+      ],
+      "linux": {
+        "problemMatcher": [
+          "$gcc"
+        ]
+      },
+      "osx": {
+        "problemMatcher": [
+          "$gcc"
+        ]
+      }
     },
     {
-      "label": "cmake: build relwithdebinfo",
+      "label": "premake: build debug (Windows)",
       "type": "shell",
-      "command": "cmake",
+      "command": "powershell",
       "args": [
-        "--build",
-        "${workspaceFolder}/build",
-        "--config",
-        "RelWithDebInfo",
-        "--target",
-        "metal_cpp_test"
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "& { $ErrorActionPreference='Stop'; ./scripts/generateProjectFiles.ps1 -Action vs2022; $msbuild = (Get-Command msbuild -ErrorAction SilentlyContinue).Source; if (-not $msbuild) { $vswhere = \"${env:ProgramFiles(x86)}\\Microsoft Visual Studio\\Installer\\vswhere.exe\"; if (Test-Path $vswhere) { $msbuild = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\\**\\Bin\\MSBuild.exe | Select-Object -First 1 } }; if (-not $msbuild) { throw 'MSBuild not found' }; & $msbuild ./build/ProjectFiles/vs2022/metalCppGlfw.sln /m /t:metalCppTest /p:Configuration=Debug /p:Platform=x64 }"
       ],
-      "dependsOn": "cmake: configure",
       "problemMatcher": [
         "$msCompile"
-      ]
+      ],
+      "windows": {
+        "command": "powershell"
+      }
     },
     {
-      "label": "cmake: build minsizerel",
+      "label": "premake: build release (Windows)",
       "type": "shell",
-      "command": "cmake",
+      "command": "powershell",
       "args": [
-        "--build",
-        "${workspaceFolder}/build",
-        "--config",
-        "MinSizeRel",
-        "--target",
-        "metal_cpp_test"
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "& { $ErrorActionPreference='Stop'; ./scripts/generateProjectFiles.ps1 -Action vs2022; $msbuild = (Get-Command msbuild -ErrorAction SilentlyContinue).Source; if (-not $msbuild) { $vswhere = \"${env:ProgramFiles(x86)}\\Microsoft Visual Studio\\Installer\\vswhere.exe\"; if (Test-Path $vswhere) { $msbuild = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\\**\\Bin\\MSBuild.exe | Select-Object -First 1 } }; if (-not $msbuild) { throw 'MSBuild not found' }; & $msbuild ./build/ProjectFiles/vs2022/metalCppGlfw.sln /m /t:metalCppTest /p:Configuration=Release /p:Platform=x64 }"
       ],
-      "dependsOn": "cmake: configure",
       "problemMatcher": [
         "$msCompile"
-      ]
+      ],
+      "windows": {
+        "command": "powershell"
+      }
     }
   ]
 }
