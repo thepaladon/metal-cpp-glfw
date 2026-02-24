@@ -45,12 +45,13 @@ int main()
         glfwTerminate();
         return 1;
     }
-
+    
     AAPtr<Renderer> renderer = createRenderer();
     if (!renderer || !renderer->initialize(window))
     {
         glfwDestroyWindow(window);
         glfwTerminate();
+        AAFail("Renderer borked and couldn't init");
         return 1;
     }
 
@@ -80,7 +81,7 @@ int main()
         const b8 assertKeyDown = glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS;
         if (assertKeyDown && !assertKeyWasDown)
         {
-            AAAssertMessage(false, "F2 assert test. Choose Ignore Once or Mute Assert.");
+            AAAssert(false, "F2 assert test. Choose Ignore Once or Mute Assert.");
         }
         assertKeyWasDown = assertKeyDown;
 

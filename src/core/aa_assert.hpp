@@ -23,7 +23,7 @@ class AAAssert
 #define AADebugBreak() ((void)0)
 #endif
 
-#define AAAssertMessage(conditionExpr, messageText)                                                          \
+#define AAAssert(conditionExpr, messageText)                                                          \
     do                                                                                                       \
     {                                                                                                        \
         if (!(conditionExpr))                                                                                \
@@ -35,6 +35,8 @@ class AAAssert
         }                                                                                                    \
     } while (0)
 
-#define AAAssert(conditionExpr) AAAssertMessage(conditionExpr, nullptr)
+#define AAFail(messageText) AAAssert(false, messageText)
+
+#define AAAssertNoMessage(conditionExpr) AAAssertMessage(conditionExpr, nullptr)
 
 } // namespace aa
