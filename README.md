@@ -72,10 +72,30 @@ make -C build/ProjectFiles/gmake config=debug
 make -C build/ProjectFiles/gmake config=release
 ```
 
+Web (Emscripten + WebGPU):
+```bash
+source /path/to/emsdk/emsdk_env.sh
+./scripts/generateProjectFiles.sh web
+emmake make -C build/ProjectFiles/gmake config=debug metalCppWeb
+```
+
+Web output files are generated in:
+- `build/Web/Debug/index.html`
+- `build/Web/Debug/app.js`
+- `build/Web/Debug/app.wasm`
+
+Run a local server from the output directory:
+```bash
+cd build/Web/Debug
+python3 -m http.server 8080
+```
+Then open `http://localhost:8080`.
+
 ## Cross-platform status
 
 - macOS path: GLFW + Metal + ImGui.
 - Windows/Linux path: GLFW + OpenGL3 + ImGui baseline.
+- Web path: Emscripten + WebGPU baseline with localStorage-backed per-browser settings.
 
 See `/docs/cross-platform-plan.md` for the architecture and migration plan toward full Windows parity.
 
@@ -86,3 +106,5 @@ Initial cross-platform graphics API scaffolding lives in:
 - `/src/gpu/gpu_api_stub.cpp`
 
 The stub backend currently returns placeholder handles/no-op behavior so higher-level refactors can proceed before backend-specific implementations are complete.
+
+See `/docs/webgpu-browser-run.md` for browser-specific setup and troubleshooting.

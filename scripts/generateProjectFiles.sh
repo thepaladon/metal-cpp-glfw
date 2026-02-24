@@ -6,11 +6,15 @@ action="${1:-gmake}"
 if [[ "$action" == "gmake2" ]]; then
   action="gmake"
 fi
+if [[ "$action" == "web" ]]; then
+  action="gmake"
+  export AA_WEB_BUILD=1
+fi
 case "$action" in
   gmake|xcode4) ;;
   *)
     echo "Unsupported action: $action"
-    echo "Usage: ./scripts/generateProjectFiles.sh [gmake|xcode4]"
+    echo "Usage: ./scripts/generateProjectFiles.sh [gmake|xcode4|web]"
     exit 1
     ;;
 esac

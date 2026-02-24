@@ -1,5 +1,9 @@
+local aaWebBuild = os.getenv("AA_WEB_BUILD") == "1"
+
 workspace "metalCppGlfw"
-    architecture "x86_64"
+    if not aaWebBuild then
+        architecture "x86_64"
+    end
     configurations { "Debug", "Release" }
     location "build/ProjectFiles/%{_ACTION}"
     startproject "metalCppTest"
@@ -21,6 +25,7 @@ local eabaseIncludePath = eabasePath .. "/include/Common"
 local metalCppPath = thirdPartyPath .. "/metal-cpp"
 local intermediateOutDir = "build/Intermediate/%{_ACTION}/%{cfg.buildcfg}"
 local appOutDir = "build/Build/%{_ACTION}/%{cfg.buildcfg}"
+local webOutDir = "build/Web/%{cfg.buildcfg}"
 
 project "glfw"
     kind "StaticLib"
@@ -307,5 +312,51 @@ project "metalCppTest"
             "Metal.framework",
             "QuartzCore.framework",
             "CoreFoundation.framework"
+        }
+    filter {}
+
+project "metalCppWeb"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    targetdir(webOutDir)
+    objdir("build/Intermediate/web/%{cfg.buildcfg}/%{prj.name}")
+    targetname("app")
+    targetextension(".js")
+
+    includedirs {
+        "src"
+    }
+
+    files {
+        "src/main_web.cpp",
+        "src/core/aa_types.hpp",
+        "src/render/renderer.hpp",
+        "src/render/renderer_factory.cpp",
+        "src/render/renderer_webgpu.hpp",
+        "src/render/renderer_webgpu.cpp"
+    }
+
+    filter "action:gmake"
+        buildoptions {
+            "--use-port=emdawnwebgpu"
+        }
+        linkoptions {
+            "--use-port=emdawnwebgpu",
+            "-sALLOW_MEMORY_GROWTH=1",
+            "-sWASM=1",
+            "-sNO_EXIT_RUNTIME=1"
+        }
+    filter "configurations:Debug"
+        linkoptions {
+            "-sASSERTIONS=1"
+        }
+    filter "configurations:Release"
+        linkoptions {
+            "-sASSERTIONS=0"
+        }
+    filter "action:gmake"
+        postbuildcommands {
+            "{COPYFILE} ../../../web/index.html %{cfg.targetdir}/index.html"
         }
     filter {}
