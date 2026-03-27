@@ -323,9 +323,14 @@ project "metalCppWeb"
     objdir("build/Intermediate/web/%{cfg.buildcfg}/%{prj.name}")
     targetname("app")
     targetextension(".js")
+    defines {
+        "IMGUI_IMPL_WEBGPU_BACKEND_DAWN"
+    }
 
     includedirs {
-        "src"
+        "src",
+        imguiPath,
+        imguiPath .. "/backends"
     }
 
     files {
@@ -334,7 +339,14 @@ project "metalCppWeb"
         "src/render/renderer.hpp",
         "src/render/renderer_factory.cpp",
         "src/render/renderer_webgpu.hpp",
-        "src/render/renderer_webgpu.cpp"
+        "src/render/renderer_webgpu.cpp",
+        imguiPath .. "/imgui.cpp",
+        imguiPath .. "/imgui_demo.cpp",
+        imguiPath .. "/imgui_draw.cpp",
+        imguiPath .. "/imgui_tables.cpp",
+        imguiPath .. "/imgui_widgets.cpp",
+        imguiPath .. "/backends/imgui_impl_wgpu.cpp",
+        imguiPath .. "/backends/imgui_impl_wgpu.h"
     }
 
     filter "action:gmake"

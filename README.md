@@ -56,10 +56,31 @@ Linux/macOS (GNU Make):
 ./scripts/generateProjectFiles.sh gmake
 ```
 
+Web (Emscripten makefiles):
+```bash
+./scripts/generateProjectFiles.sh web
+```
+
 Generated project files go to `build/ProjectFiles/<action>`.
 Build outputs are kept in:
 - `build/Build/<action>/<Config>` for runnable binaries
 - `build/Intermediate/<action>/<Config>` for object files and static libs
+
+### Target cheat sheet
+
+Pick one target first. The build commands are different:
+
+1. Native desktop app:
+- Target name: `metalCppTest`
+- API selected at compile time:
+`macOS -> Metal`, `Windows/Linux -> OpenGL3`
+- Output: native executable under `build/Build/...`
+
+2. Browser app:
+- Target name: `metalCppWeb`
+- API selected at compile time:
+`Emscripten -> WebGPU`
+- Output: `build/Web/<Config>/index.html`, `app.js`, `app.wasm`
 
 ### Build
 
@@ -68,8 +89,8 @@ Windows:
 
 macOS/Linux with GNU Make:
 ```bash
-make -C build/ProjectFiles/gmake config=debug
-make -C build/ProjectFiles/gmake config=release
+make -C build/ProjectFiles/gmake config=debug metalCppTest
+make -C build/ProjectFiles/gmake config=release metalCppTest
 ```
 
 Web (Emscripten + WebGPU):
@@ -77,6 +98,7 @@ Web (Emscripten + WebGPU):
 source /path/to/emsdk/emsdk_env.sh
 ./scripts/generateProjectFiles.sh web
 emmake make -C build/ProjectFiles/gmake config=debug metalCppWeb
+emmake make -C build/ProjectFiles/gmake config=release metalCppWeb
 ```
 
 Web output files are generated in:
@@ -91,11 +113,15 @@ python3 -m http.server 8080
 ```
 Then open `http://localhost:8080`.
 
+If you switch between desktop and web often:
+1. Regenerate once for the target (`gmake` for native, `web` for Emscripten).
+2. Build only that target (`metalCppTest` or `metalCppWeb`).
+
 ## Cross-platform status
 
 - macOS path: GLFW + Metal + ImGui.
 - Windows/Linux path: GLFW + OpenGL3 + ImGui baseline.
-- Web path: Emscripten + WebGPU baseline with localStorage-backed per-browser settings.
+- Web path: Emscripten + WebGPU + ImGui with localStorage-backed per-browser settings.
 
 See `/docs/cross-platform-plan.md` for the architecture and migration plan toward full Windows parity.
 

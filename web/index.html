@@ -7,211 +7,94 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #0f1722;
-      --panel: #1f2937;
+      --bg: #0b1220;
       --text: #e5e7eb;
       --muted: #94a3b8;
-      --accent: #22c55e;
     }
+
+    html,
     body {
       margin: 0;
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      background: radial-gradient(circle at 15% 20%, #111827 0%, #0b1220 45%, #060b13 100%);
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at 10% 20%, #111827 0%, #0b1220 45%, #060b13 100%);
       color: var(--text);
       font-family: "Avenir Next", "Segoe UI", sans-serif;
     }
-    .panel {
-      background: color-mix(in oklab, var(--panel) 92%, black);
-      border-right: 1px solid #334155;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-    .panel h1 {
-      margin: 0 0 8px;
-      font-size: 20px;
-      letter-spacing: 0.4px;
-    }
-    .panel p {
-      margin: 0 0 16px;
+
+    #status {
+      position: fixed;
+      left: 16px;
+      bottom: 16px;
+      z-index: 2;
+      padding: 10px 12px;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      background: rgba(15, 23, 34, 0.85);
       color: var(--muted);
-      line-height: 1.45;
-    }
-    .group {
-      margin-bottom: 14px;
-    }
-    label {
-      display: block;
-      margin-bottom: 6px;
       font-size: 13px;
-      color: var(--muted);
+      pointer-events: none;
     }
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--accent);
-    }
-    canvas {
-      width: 100%;
-      height: 100vh;
+
+    #canvas {
       display: block;
-    }
-    .value {
-      font-size: 12px;
-      color: #cbd5e1;
-      margin-top: 4px;
+      width: 100vw;
+      height: 100vh;
+      outline: none;
     }
   </style>
 </head>
 <body>
-  <aside class="panel">
-    <h1>WebGPU Controls</h1>
-    <p>Each browser profile stores its own settings in localStorage.</p>
+  <canvas id="canvas" tabindex="0"></canvas>
+  <div id="status">Initializing WebGPU…</div>
 
-    <div class="group">
-      <label for="uiScale">UI Scale</label>
-      <input id="uiScale" type="range" min="0.5" max="3" step="0.05" value="1" />
-      <div class="value" id="uiScaleValue">1.00</div>
-    </div>
-
-    <div class="group">
-      <label for="clearR">Clear Color R</label>
-      <input id="clearR" type="range" min="0" max="1" step="0.01" value="0.2" />
-      <div class="value" id="clearRValue">0.20</div>
-    </div>
-
-    <div class="group">
-      <label for="clearG">Clear Color G</label>
-      <input id="clearG" type="range" min="0" max="1" step="0.01" value="0.2" />
-      <div class="value" id="clearGValue">0.20</div>
-    </div>
-
-    <div class="group">
-      <label for="clearB">Clear Color B</label>
-      <input id="clearB" type="range" min="0" max="1" step="0.01" value="0.2" />
-      <div class="value" id="clearBValue">0.20</div>
-    </div>
-
-    <div class="group">
-      <label>State</label>
-      <div class="value" id="sliderState">slider(0.20, 0.20, 0.20)</div>
-      <div class="value" id="renderState">Renderer frame 0: waiting</div>
-    </div>
-  </aside>
-
-  <canvas id="canvas"></canvas>
   <script>
-    const keys = {
-      uiScale: "aaWeb.uiScale",
-      clearR: "aaWeb.clearR",
-      clearG: "aaWeb.clearG",
-      clearB: "aaWeb.clearB"
-    };
+    const canvasElement = document.getElementById("canvas");
+    const statusElement = document.getElementById("status");
 
-    const defaults = {
-      uiScale: 1.0,
-      clearR: 0.2,
-      clearG: 0.2,
-      clearB: 0.2
-    };
-
-    const fields = {
-      uiScale: document.getElementById("uiScale"),
-      clearR: document.getElementById("clearR"),
-      clearG: document.getElementById("clearG"),
-      clearB: document.getElementById("clearB")
-    };
-
-    const labels = {
-      uiScale: document.getElementById("uiScaleValue"),
-      clearR: document.getElementById("clearRValue"),
-      clearG: document.getElementById("clearGValue"),
-      clearB: document.getElementById("clearBValue")
-    };
-
-    function parseStored(key, fallback) {
-      const raw = localStorage.getItem(key);
-      if (raw === null) {
-        return fallback;
-      }
-      const value = Number(raw);
-      return Number.isFinite(value) ? value : fallback;
-    }
-
-    function setLabel(name, value) {
-      labels[name].textContent = value.toFixed(2);
-    }
-
-    function readField(name) {
-      return Number(fields[name].value);
-    }
-
-    function updateSliderState() {
-      const r = readField("clearR");
-      const g = readField("clearG");
-      const b = readField("clearB");
-      document.getElementById("sliderState").textContent =
-        `slider(${r.toFixed(2)}, ${g.toFixed(2)}, ${b.toFixed(2)})`;
-    }
-
-    function storeAll() {
-      localStorage.setItem(keys.uiScale, String(readField("uiScale")));
-      localStorage.setItem(keys.clearR, String(readField("clearR")));
-      localStorage.setItem(keys.clearG, String(readField("clearG")));
-      localStorage.setItem(keys.clearB, String(readField("clearB")));
-    }
-
-    function applyStoredValues() {
-      for (const name of Object.keys(fields)) {
-        const value = parseStored(keys[name], defaults[name]);
-        fields[name].value = String(value);
-        setLabel(name, value);
-      }
-      updateSliderState();
-      storeAll();
-    }
-
-    for (const [name, field] of Object.entries(fields)) {
-      field.addEventListener("input", () => {
-        const value = readField(name);
-        setLabel(name, value);
-        updateSliderState();
-        storeAll();
-      });
-    }
-
-    applyStoredValues();
+    canvasElement.addEventListener("pointerdown", () => {
+      canvasElement.focus({ preventScroll: true });
+    });
+    canvasElement.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+    });
 
     async function loadWasmApp() {
-      const renderStateElement = document.getElementById("renderState");
-
       if (!("gpu" in navigator)) {
-        renderStateElement.textContent = "Renderer unavailable: browser has no WebGPU support";
+        statusElement.textContent = "WebGPU unavailable in this browser.";
         return;
       }
 
       try {
         const adapter = await navigator.gpu.requestAdapter();
         if (!adapter) {
-          renderStateElement.textContent = "Renderer unavailable: requestAdapter returned null";
+          statusElement.textContent = "WebGPU adapter request returned null.";
           return;
         }
 
         const device = await adapter.requestDevice();
-
         globalThis.Module = {
           preinitializedWebGPUDevice: device,
-          onAbort: (reason) => {
-            renderStateElement.textContent = `Renderer aborted: ${reason}`;
+          onRuntimeInitialized: () => {
+            statusElement.textContent = "WebGPU running. Open ImGui window for controls.";
+            setTimeout(() => {
+              statusElement.style.opacity = "0.0";
+              statusElement.style.transition = "opacity 0.4s ease";
+            }, 2000);
           },
+          onAbort: (reason) => {
+            statusElement.style.opacity = "1.0";
+            statusElement.textContent = `Runtime aborted: ${reason}`;
+          }
         };
 
-        const wasmScript = document.createElement("script");
-        wasmScript.src = "app.js";
-        wasmScript.async = true;
-        document.body.appendChild(wasmScript);
+        const script = document.createElement("script");
+        script.src = "app.js";
+        script.async = true;
+        document.body.appendChild(script);
       } catch (error) {
-        renderStateElement.textContent = `Renderer init failed: ${error}`;
+        statusElement.textContent = `WebGPU init failed: ${error}`;
       }
     }
 
