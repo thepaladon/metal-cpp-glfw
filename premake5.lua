@@ -414,7 +414,7 @@ project "aaServer"
         libdirs { vcpkgLib }
         links { "ws2_32", "uv" }
     filter "system:linux"
-        links { "pthread" }
+        links { "pthread", "uv" }
     filter {}
 end -- not aaWebBuild
 
