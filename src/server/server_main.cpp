@@ -17,8 +17,21 @@ struct ConnectionData
 
 static GameState gGameState;
 static std::map<void*, u8> gSocketToPlayer;
-static u8 gNextPlayerId = 1;
 static std::vector<u8> gSendBuffer;
+
+static u8 allocatePlayerId()
+{
+    for (u8 id = 1; id != 0; ++id)
+    {
+        bool taken = false;
+        for (const auto& p : gGameState.players)
+        {
+            if (p.playerId == id) { taken = true; break; }
+        }
+        if (!taken) return id;
+    }
+    return 0;
+}
 
 // Store websockets for broadcasting
 static std::vector<uWS::WebSocket<false, true, ConnectionData>*> gClients;
@@ -53,7 +66,7 @@ int main()
 
         .open = [](auto* ws) {
             auto* data = ws->getUserData();
-            data->playerId = gNextPlayerId++;
+            data->playerId = allocatePlayerId();
 
             PlayerState player;
             player.playerId = data->playerId;
