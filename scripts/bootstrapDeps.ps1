@@ -30,5 +30,7 @@ SyncGitRepo -Name "imgui" -Url "https://github.com/ocornut/imgui.git" -Commit "3
 SyncGitRepo -Name "metal-cpp" -Url "https://github.com/bkaradzic/metal-cpp.git" -Commit "5caea74c5f77492add32b7cad109d796e342ab49"
 SyncGitRepo -Name "EASTL" -Url "https://github.com/electronicarts/EASTL.git" -Commit "9d2e8a090bceae2bb658bc45c3d4ee2d796cdf48"
 SyncGitRepo -Name "EABase" -Url "https://github.com/electronicarts/EABase.git" -Commit "0699a15efdfd20b6cecf02153bfa5663decb653c"
+SyncGitRepo -Name "uWebSockets" -Url "https://github.com/uNetworking/uWebSockets.git" -Commit "v20.72.0"
+SyncGitRepo -Name "uSockets" -Url "https://github.com/uNetworking/uSockets.git" -Commit "v0.8.8"
 
 Write-Host "Dependency bootstrap complete."

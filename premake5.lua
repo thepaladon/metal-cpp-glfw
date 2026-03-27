@@ -23,6 +23,8 @@ local eastlPath = thirdPartyPath .. "/EASTL"
 local eabasePath = thirdPartyPath .. "/EABase"
 local eabaseIncludePath = eabasePath .. "/include/Common"
 local metalCppPath = thirdPartyPath .. "/metal-cpp"
+local uWebSocketsPath = thirdPartyPath .. "/uWebSockets"
+local uSocketsPath = thirdPartyPath .. "/uSockets"
 local intermediateOutDir = "build/Intermediate/%{_ACTION}/%{cfg.buildcfg}"
 local appOutDir = "build/Build/%{_ACTION}/%{cfg.buildcfg}"
 local webOutDir = "build/Web/%{cfg.buildcfg}"
@@ -207,6 +209,47 @@ project "dearImgui"
         }
     filter {}
 
+-- uSockets static library (dependency of uWebSockets)
+local vcpkgRoot = os.getenv("VCPKG_ROOT") or "C:/DEVELOPMENT/vcpkg"
+local vcpkgInclude = vcpkgRoot .. "/installed/x64-windows/include"
+local vcpkgLib = vcpkgRoot .. "/installed/x64-windows/lib"
+local vcpkgLibDebug = vcpkgRoot .. "/installed/x64-windows/debug/lib"
+
+if not aaWebBuild then
+project "uSockets"
+    kind "StaticLib"
+    language "C"
+    warnings "Off"
+    targetdir(intermediateOutDir)
+    objdir (intermediateOutDir .. "/%{prj.name}")
+
+    defines {
+        "LIBUS_NO_SSL",
+        "LIBUS_USE_LIBUV"
+    }
+
+    includedirs {
+        uSocketsPath .. "/src"
+    }
+
+    files {
+        uSocketsPath .. "/src/*.c",
+        uSocketsPath .. "/src/eventing/*.c"
+    }
+
+    removefiles {
+        uSocketsPath .. "/src/crypto/**",
+        uSocketsPath .. "/src/quic.c"
+    }
+
+    filter "system:windows"
+        externalincludedirs { vcpkgInclude }
+        links { "ws2_32" }
+    filter "system:linux"
+        links { "pthread" }
+    filter {}
+end -- not aaWebBuild
+
 project "metalCppTest"
     kind "ConsoleApp"
     language "C++"
@@ -224,7 +267,7 @@ project "metalCppTest"
     includedirs {
         "src",
         imguiPath,
-        imguiPath .. "/backends",
+        imguiPath .. "/backends"
     }
 
     externalincludedirs {
@@ -254,7 +297,15 @@ project "metalCppTest"
         "src/core/aa_types.hpp",
         "src/gpu/gpu_api.hpp",
         "src/render/renderer.hpp",
-        "src/render/renderer_factory.cpp"
+        "src/render/renderer_factory.cpp",
+        "src/shared/**.hpp",
+        "src/shared/**.cpp",
+        "src/net/aa_net_transport.hpp",
+        "src/net/aa_net_transport_factory.cpp",
+        "src/net/aa_net_transport_native.hpp",
+        "src/net/aa_net_transport_native.cpp",
+        "src/game/**.hpp",
+        "src/game/**.cpp"
     }
 
     links {
@@ -271,6 +322,9 @@ project "metalCppTest"
             "src/render/renderer_opengl.cpp",
             "src/render/renderer_opengl.hpp"
         }
+        links {
+            "opengl32"
+        }
     filter "system:linux"
         files {
             "src/core/aa_assert_stub.cpp",
@@ -278,13 +332,6 @@ project "metalCppTest"
             "src/render/renderer_opengl.cpp",
             "src/render/renderer_opengl.hpp"
         }
-
-    filter "system:windows"
-        links {
-            "opengl32"
-        }
-
-    filter "system:linux"
         links {
             "GL"
         }
@@ -315,6 +362,62 @@ project "metalCppTest"
         }
     filter {}
 
+-- Server application (native only)
+if not aaWebBuild then
+project "aaServer"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++20"
+    targetdir(appOutDir)
+    objdir (intermediateOutDir .. "/%{prj.name}")
+
+    defines {
+        "UWS_NO_ZLIB",
+        "_CRT_SECURE_NO_WARNINGS"
+    }
+
+    dependson {
+        "eastl",
+        "uSockets"
+    }
+
+    includedirs {
+        "src",
+        uWebSocketsPath .. "/src",
+        uSocketsPath .. "/src"
+    }
+
+    externalincludedirs {
+        eastlPath .. "/include",
+        eabaseIncludePath
+    }
+
+    files {
+        "src/server/server_main.cpp",
+        "src/shared/**.hpp",
+        "src/shared/**.cpp",
+        "src/core/aa_types.hpp",
+        "src/core/aa_containers.hpp",
+        "src/core/aa_build_config.hpp",
+        "src/core/aa_memory.hpp",
+        "src/core/aa_eastl_new.cpp",
+        "src/core/aa_global_new.cpp"
+    }
+
+    links {
+        "eastl",
+        "uSockets"
+    }
+
+    filter "system:windows"
+        externalincludedirs { vcpkgInclude }
+        libdirs { vcpkgLib }
+        links { "ws2_32", "uv" }
+    filter "system:linux"
+        links { "pthread" }
+    filter {}
+end -- not aaWebBuild
+
 project "metalCppWeb"
     kind "ConsoleApp"
     language "C++"
@@ -340,6 +443,14 @@ project "metalCppWeb"
         "src/render/renderer_factory.cpp",
         "src/render/renderer_webgpu.hpp",
         "src/render/renderer_webgpu.cpp",
+        "src/shared/**.hpp",
+        "src/shared/**.cpp",
+        "src/net/aa_net_transport.hpp",
+        "src/net/aa_net_transport_factory.cpp",
+        "src/net/aa_net_transport_web.hpp",
+        "src/net/aa_net_transport_web.cpp",
+        "src/game/**.hpp",
+        "src/game/**.cpp",
         imguiPath .. "/imgui.cpp",
         imguiPath .. "/imgui_demo.cpp",
         imguiPath .. "/imgui_draw.cpp",
@@ -357,7 +468,8 @@ project "metalCppWeb"
             "--use-port=emdawnwebgpu",
             "-sALLOW_MEMORY_GROWTH=1",
             "-sWASM=1",
-            "-sNO_EXIT_RUNTIME=1"
+            "-sNO_EXIT_RUNTIME=1",
+            "-lwebsocket.js"
         }
     filter "configurations:Debug"
         linkoptions {

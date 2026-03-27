@@ -89,6 +89,11 @@ class RendererOpenGL final : public Renderer
         }
         ImGui::End();
 
+        if (gameRenderCallback_)
+        {
+            gameRenderCallback_();
+        }
+
 #if AA_CFG_MEMORY_TRACKING && AA_CFG_MEMORY_TRACKING_UI
         ImGui::Begin("Memory Tracker");
         const aa::AAMemoryStats memStats = aa::AAMemoryTrackerGetStats();

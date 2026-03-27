@@ -338,6 +338,11 @@ class RendererWebGpu final : public Renderer
             settingsDirty_ = false;
         }
 
+        if (gameRenderCallback_)
+        {
+            gameRenderCallback_();
+        }
+
         ImGui::Render();
 
         WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;

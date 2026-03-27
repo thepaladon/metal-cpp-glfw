@@ -3,6 +3,7 @@
 #include "core/aa_memory.hpp"
 #include "core/aa_platform.hpp"
 #include "core/aa_types.hpp"
+#include "game/aa_game_client.hpp"
 #include "render/renderer.hpp"
 
 #include <GLFW/glfw3.h>
@@ -45,7 +46,7 @@ int main()
         glfwTerminate();
         return 1;
     }
-    
+
     AAPtr<Renderer> renderer = createRenderer();
     if (!renderer || !renderer->initialize(window))
     {
@@ -54,6 +55,12 @@ int main()
         AAFail("Renderer borked and couldn't init");
         return 1;
     }
+
+    AAGameClient gameClient;
+    gameClient.initialize("ws://localhost:9001");
+    renderer->setGameRenderCallback([&gameClient]() {
+        gameClient.renderImGui();
+    });
 
     f64 lastTime = glfwGetTime();
     b8 escWasDown = false;
@@ -95,13 +102,13 @@ int main()
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
         cmdWWasDown = cmdWDown;
-
-        //i32* test = AA_NEW_TAG("testing") i32;
 #endif
 
+        gameClient.update(deltaTime);
         renderer->renderFrame(deltaTime);
     }
 
+    gameClient.shutdown();
     renderer->shutdown();
     glfwDestroyWindow(window);
     glfwTerminate();
