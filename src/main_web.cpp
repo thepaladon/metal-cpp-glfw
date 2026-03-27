@@ -35,9 +35,9 @@ int main()
         return 1;
     }
 
-    appState.gameClient.initialize("ws://localhost:9001");
-    appState.renderer->setGameRenderCallback([&appState]() {
-        appState.gameClient.renderImGui();
+    appState.gameClient.initialize("wss://anglesserver/ws");
+    appState.renderer->setGameRenderCallback([s = &appState]() {
+        s->gameClient.renderImGui();
     });
 
     appState.lastTime = emscripten_get_now();
